@@ -16,27 +16,6 @@ export default props => {
     )
 }
 
-export const setFontSize = (value) => {
-    const display = document.querySelector('.display')
-    
-    if(value === 14 || value === 16 || value === 18) {
-
-        if(fontSize === 25) {
-            return false
-        } else {
-            fontSize -= 5
-        }
-        display.style.fontSize = fontSize + 'px'
-    }
-    return true
-}
-
-export const resetFontSize = () => {
-    const display = document.querySelector('.display')
-    fontSize = 35
-    display.style.fontSize = fontSize + 'px'
-}
-
 export const setErrorVisibility = tf => {
     const error = document.querySelector('.error')
     if(tf) {

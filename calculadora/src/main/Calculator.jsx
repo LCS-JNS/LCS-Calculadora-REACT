@@ -2,11 +2,7 @@ import React, { Component } from "react";
 import './Calculator.css'
 
 import Button from "../components/Button";
-import Display, { 
-    setFontSize,
-    setErrorVisibility,
-    resetFontSize
-    } from "../components/Display";
+import Display, { setErrorVisibility } from "../components/Display";
 
 const preSet = {
     displayValue: '0',
@@ -15,7 +11,7 @@ const preSet = {
     values: [0, 0],
     current: 0,
     minus: false,
-    numpad: false
+    numpad: true
 }
 
 
@@ -24,20 +20,22 @@ export default class Calculator extends Component {
 
     state = { ...preSet }
 
-    clearMemory() {
-        this.setState({ ...preSet })
+    async clearMemory() {
+        await this.setState({ ...preSet })
         setErrorVisibility(false)
-        resetFontSize()
+        
+        this.blockNums()
     }
 
-    setOperation(op) {
+    async setOperation(op) {
         if(this.state.current === 0) {
-            this.setState({ operation: op, current: 1, clearDisplay: true})
+            await this.setState({ operation: op, current: 1, clearDisplay: true, numpad: true})
+            this.blockNums()
         } else {
             const currentOperation = this.state.operation
-            const equals = op === '='
+            let equals = op === '='
             const values = [...this.state.values]
-            
+            let displayValue = values[0] + ''
             try {
                 if(currentOperation === '%') {
                     const porcentage = values[0]
@@ -46,6 +44,25 @@ export default class Calculator extends Component {
                 } else {
                     values[0] = eval(`${values[0]} ${currentOperation} ${values[1]}`)
                 }
+                displayValue = values[0] + ''
+                if(displayValue.includes('.')) {
+                    const splitedValue = displayValue.split('.')
+                    let preDotValue = splitedValue[0]
+                    let postDotValue = splitedValue[1]
+                    let preDotValueLength = preDotValue.length
+                    if(preDotValue.includes('-')) {
+                        preDotValueLength--
+                    }
+                    if(preDotValueLength >= 13) {
+                        displayValue = 'too Big'
+                    } else {
+                        let countTotal = preDotValueLength
+                        let totalSpaceRest = 13 - countTotal                      
+                        postDotValue += ''
+                        displayValue = `${preDotValue}.${postDotValue.substring(0, totalSpaceRest)}`
+                    
+                    }
+                }
                 if(isNaN(values[0] || !isFinite(values[0]))) {
                     this.clearMemory()
                     return
@@ -53,7 +70,6 @@ export default class Calculator extends Component {
             } catch(e) {
                 values[0] = this.state.values[0]
             }
-
             values[1] = 0
             const sign = Math.sign(values[0]) 
             let minus = false
@@ -61,15 +77,22 @@ export default class Calculator extends Component {
             if(sign === -1) {
                 minus = true
             }
-            
-            //caso o valor resultante da operação seja maior que o limite
-            //bloquear botões
-            //apresentar erro
+            let current = equals ? 0 : 1
+            let displayValueLength = this.getActualLength(displayValue)
+            if(displayValueLength > 13 && (displayValue > 9999999999999 || displayValue < -9999999999999 || displayValue.match('[a-z, 0-9]')) ) {
+                await this.setState({ numpad: true })
+                this.blockNums()
+                displayValue = 'too Big.'
+                equals = false;
+                current = 0
+            } else if(this.state.numpad) {
+                this.blockNums()
+            }
 
             this.setState({
-                displayValue: values[0] + '',
+                displayValue: displayValue,
                 operation: equals ? null : op,
-                current: equals ? 0 : 1,
+                current,
                 clearDisplay: !equals,
                 values,
                 minus
@@ -78,7 +101,7 @@ export default class Calculator extends Component {
         }
     }
 
-    addDigit(n) {
+    async addDigit(n) {
         
         let displayValue = this.state.displayValue
         
@@ -96,6 +119,7 @@ export default class Calculator extends Component {
                 displayValue = '-'
             }
         }
+
         let minus = this.state.minus
         let clearDisplay = this.state.clearDisplay
         if(clearDisplay) {
@@ -110,7 +134,14 @@ export default class Calculator extends Component {
         
         
         this.updateError(displayValue)
-        //bloquear botões ao chegar no limite e desbloquear ao voltar
+        let displayValueLength = this.getActualLength(displayValue)
+        if(displayValueLength === 13) {
+            await this.setState({ numpad: false })
+            this.blockNums()
+        } else {
+            await this.setState({ numpad: true })
+            this.blockNums()
+        }
         
         this.setState({ displayValue, clearDisplay, minus })
         if(n !== '.') {
@@ -132,7 +163,7 @@ export default class Calculator extends Component {
         this.insertNumber(displayValue)
     }
 
-    bs() {
+    async bs() {
         let displayValue = this.state.displayValue
         if(displayValue === '0') {
             return
@@ -144,6 +175,8 @@ export default class Calculator extends Component {
         this.setState({ displayValue })
         this.insertNumber(displayValue)
         this.updateError(displayValue)
+        await this.setState({ numpad: true })
+        this.blockNums()
     }
 
     render() {
@@ -188,12 +221,9 @@ export default class Calculator extends Component {
     }
 
     updateError(displayValue) {
-        setFontSize(displayValue.length)
-        if(displayValue.length >= 18) {
-            if(displayValue.length > 18) {
-                
-                this.setState({ displayValue })
-            }
+        let displayValueLength = this.getActualLength(displayValue)
+        
+        if(displayValueLength >= 13) {
             setErrorVisibility(true)
         } else {
             setErrorVisibility(false)
@@ -211,12 +241,22 @@ export default class Calculator extends Component {
         })
         
         noOperators.forEach(btn => {
-            if(this.state.numpad) {
-                btn.disabled = false
-            } else {
+            if(!this.state.numpad) {
                 btn.disabled = true
+            } else {
+                btn.disabled = false
             }
         })
-        this.setState({ numpad: !this.state.numpad })
+    }
+
+    getActualLength(displayValue) {
+        let displayValueLength = displayValue.length
+        if(displayValue.includes('-')) {
+            displayValueLength--
+        }
+        if(displayValue.includes('.')) {
+            displayValueLength--
+        }
+        return displayValueLength
     }
 }  
