@@ -1,0 +1,32 @@
+.display {
+    grid-column: span 4;
+    background-color: rgba(0, 0, 0, 0.301);
+    color: white;
+    display: grid;
+    grid-template-rows: 20px 1fr;
+    grid-template-columns: 10px 1fr;
+    font-size: 35px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    width: 306px;
+    height: 90px;
+}
+
+.value {
+    height: inherit;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: 98%;
+    grid-row: span 2;
+    
+}
+
+.error {
+    margin: 0;
+    font-size: 20px;
+    width: 100%;
+    padding-left: 3px;
+    
+}

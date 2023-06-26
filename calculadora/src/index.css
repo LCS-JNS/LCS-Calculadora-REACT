@@ -1,0 +1,19 @@
+@font-face {
+  font-family: 'Poppins';
+  src: url('./fonts/Poppins-Thin.ttf')
+}
+
+* {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+}
+
+body {
+  height: 100vh;
+  text-align: center;
+  background: linear-gradient(45deg, #000428, #004e92);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+

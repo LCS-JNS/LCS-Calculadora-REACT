@@ -1,0 +1,21 @@
+.button {
+    font-size: 1.4em;
+    outline: none;
+    border: none;
+    border-bottom: solid 1px black;
+    border-right: solid 1px black;
+    border-radius: 5px;
+}
+
+.button:active {
+    background-color: rgba(206, 206, 206, 0.322);
+}
+
+.button.operator {
+    background-color: rgb(56, 56, 56);
+    color: white;
+}
+
+.button.operator:active {
+    background-color: rgba(56, 56, 56, 0.541);
+}
